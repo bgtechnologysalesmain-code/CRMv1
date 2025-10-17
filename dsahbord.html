@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BG Technology — Smart CRM v1.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#071028;--card:#0f1724;--accent:#06b6d4;--muted:#94a3b8;--glass:rgba(255,255,255,0.03);--ok:#16a34a;--warn:#f59e0b;--danger:#ef4444}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{margin:0;background:linear-gradient(180deg,#031022 0%,#071428 100%);color:#e6eef6;min-height:100vh;padding:18px}
+    .container{max-width:1200px;margin:0 auto}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    header h1{font-size:20px;margin:0}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    textarea{min-height:70px;resize:vertical}
+    button{background:var(--accent);border:0;padding:10px 12px;border-radius:10px;color:#032;cursor:pointer;font-weight:600}
+    .metrics{display:flex;gap:12px;flex-wrap:wrap}
+    .metric{flex:1;min-width:150px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+    th,td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:left}
+    th{font-size:12px;color:var(--muted)}
+    .small{font-size:12px;color:var(--muted)}
+    .actions button{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--muted);padding:6px;border-radius:8px;cursor:pointer}
+    .top-controls{display:flex;gap:8px;align-items:center}
+    .link{color:var(--accent);text-decoration:none}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .tabs{display:flex;gap:8px;margin-bottom:10px}
+    .tab{padding:8px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+    .tab.active{background:linear-gradient(90deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06));border-color:rgba(6,182,212,0.28)}
+    .hidden{display:none}
+    .progress{height:8px;background:#072433;border-radius:8px;overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,#06b6d4,#06b6d4);}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.container{padding:10px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>BG Technology — Smart CRM v2.0</h1>
+        <div class="small">F.Y 2025-2026</div>
+      </div>
+      <div class="top-controls">
+        <button id="backupJson">Backup (JSON)</button>
+        <button id="restoreJsonBtn">Restore (JSON)</button>
+        <input id="restoreJsonFile" type="file" accept="application/json" style="display:none">
+        <button id="exportCsv">Export CSV</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" data-tab="leadTab">Leads</div>
+            <div class="tab" data-tab="projectTab">Projects</div>
+            <div class="tab" data-tab="paymentsTab">Payments</div>
+            <div class="tab" data-tab="settingsTab">Settings</div>
+          </div>
+
+          <!-- LEAD FORM -->
+          <div id="leadTab" class="tabContent">
+            <h3 style="margin:0 0 8px 0">Add / Edit Lead</h3>
+            <form id="leadForm">
+              <input type="hidden" id="leadId">
+              <label>Lead Date</label>
+              <input id="leadDate" type="date" required>
+              <label>Client Name</label>
+              <input id="clientName" placeholder="e.g., Rahul Patil" required>
+              <label>Company Name</label>
+              <input id="companyName" placeholder="optional">
+              <label>Contact Number</label>
+              <input id="contact" placeholder="+91xxxxxxxxxx">
+              <label>Email ID</label>
+              <input id="email" type="email">
+              <label>Requirement Type</label>
+              <select id="reqType"></select>
+              <label>Lead Source</label>
+              <select id="leadSource"></select>
+              <label>Assigned To</label>
+              <select id="assignedTo"></select>
+              <label>Lead Status</label>
+              <select id="status"><option>New</option><option>In Discussion</option><option>Quotation Sent</option><option>Closed</option><option>Lost</option></select>
+              <label>Expected Value (₹)</label>
+              <input id="value" type="number" min="0" step="0.01" placeholder="0">
+              <label>Next Follow-up Date</label>
+              <input id="followup" type="date">
+              <label>Notes</label>
+              <textarea id="notes" placeholder="short notes"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button type="submit">Save Lead</button>
+                <button type="button" id="clearForm" style="background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)">Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- PROJECT FORM -->
+          <div id="projectTab" class="tabContent hidden">
+            <h3 style="margin:0 0 8px 0">Add / Update Project</h3>
+            <form id="projectForm">
+              <input type="hidden" id="projectId">
+              <label>Project Name</label>
+              <input id="projectName" required>
+              <label>Client (select existing lead/client)</label>
+              <select id="projectClient"></select>
+              <label>Start Date</label>
+              <input id="projStart" type="date">
+              <label>End Date</label>
+              <input id="projEnd" type="date">
+              <label>Assigned Engineer</label>
+              <input id="projAssigned">
+              <label>Progress (%)</label>
+              <input id="projProgress" type="number" min="0" max="100" value="0">
+              <label>Remarks</label>
+              <textarea id="projNotes"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button type="submit">Save Project</button>
+                <button type="button" id="clearProject" style="background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)">Clear</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- PAYMENTS -->
+          <div id="paymentsTab" class="tabContent hidden">
+            <h3 style="margin:0 0 8px 0">Record Payment</h3>
+            <form id="paymentForm">
+              <label>Project</label>
+              <select id="payProject"></select>
+              <label>Amount Received (₹)</label>
+              <input id="payAmount" type="number" min="0" step="0.01" required>
+              <label>Payment Date</label>
+              <input id="payDate" type="date" value="">
+              <label>Notes</label>
+              <textarea id="payNotes"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button type="submit">Save Payment</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- SETTINGS -->
+          <div id="settingsTab" class="tabContent hidden">
+            <h3 style="margin:0 0 8px 0">Settings</h3>
+            <label>Sales Team (comma separated)</label>
+            <input id="settingTeam" placeholder="Venkatesh,Girish,Aniket">
+            <label>Lead Sources (comma separated)</label>
+            <input id="settingSources" placeholder="Instagram,Reference,College,Website,Walk-in">
+            <label>Requirement Types (comma separated)</label>
+            <input id="settingReqs" placeholder="Robotics Project,Workshop,Industrial Project,Other">
+            <label>Commission %</label>
+            <input id="settingCommission" type="number" min="0" max="100" value="10">
+            <div style="display:flex;gap:8px;margin-top:10px"><button id="saveSettings">Save Settings</button></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Quick Metrics</h3>
+          <div class="metrics" id="metrics">
+            <div class="metric"><div class="small">Total Leads</div><div id="mTotal">0</div></div>
+            <div class="metric"><div class="small">Active Leads</div><div id="mActive">0</div></div>
+            <div class="metric"><div class="small">Converted</div><div id="mConverted">0</div></div>
+            <div class="metric"><div class="small">Conversion %</div><div id="mConvPct">0%</div></div>
+            <div class="metric"><div class="small">Total Expected Revenue</div><div id="mRevenue">₹0</div></div>
+            <div class="metric"><div class="small">Estimated Commission</div><div id="mCommission">₹0</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Leads & Projects</h3>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input id="search" placeholder="Search by name, company, contact..." style="flex:1;padding:8px;border-radius:8px;background:var(--glass);border:1px solid rgba(255,255,255,0.03)"><select id="filterStatus"><option value="">All Status</option><option>New</option><option>In Discussion</option><option>Quotation Sent</option><option>Closed</option><option>Lost</option></select></div>
+          <div style="overflow:auto;max-height:350px">
+            <table id="leadsTable">
+              <thead>
+                <tr><th>Date</th><th>Name</th><th>Company</th><th>Assigned</th><th>Status</th><th>Value</th><th>Follow-up</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Follow-ups & Alerts</h3>
+          <div id="followToday" class="small">--</div>
+          <div id="overdue" class="small" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Analytics</h3>
+          <canvas id="chartLeads" height="150"></canvas>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px 0">Projects</h3>
+          <div style="overflow:auto;max-height:220px">
+            <table id="projectsTable"><thead><tr><th>Project</th><th>Client</th><th>Dates</th><th>Progress</th><th>Value</th><th></th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>Tips: Use Backup (JSON) before major edits. Export CSV to import into Google Sheets. Use Ctrl+Alt+K to clear demo data (dev).</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // v2.0 CRM single-file app
+    const STORAGE_KEY = 'bg_crm_v2';
+    const SETTINGS_KEY = 'bg_crm_settings_v2';
+
+    // default settings
+    const defaultSettings = {team:['Girish','Aniket'], sources:['Instagram','Reference','College','Website','Walk-in'], reqs:['Robotics Project','Workshop','Industrial Project','Other'], commission:10};
+
+    // helper uid
+    const uid = ()=> 'id_'+Date.now()+Math.random().toString(36).slice(2,6);
+
+    // load/save
+    function load(){ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    function loadSettings(){ return JSON.parse(localStorage.getItem(SETTINGS_KEY) || JSON.stringify(defaultSettings)); }
+    function saveSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+    // init DOM refs
+    const tabs = document.querySelectorAll('.tab'); const tabContents = document.querySelectorAll('.tabContent');
+    tabs.forEach(t=> t.onclick = ()=>{ tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); tabContents.forEach(c=> c.classList.add('hidden')); document.getElementById(t.dataset.tab).classList.remove('hidden'); if(t.dataset.tab==='projectTab') populateProjectClient(); if(t.dataset.tab==='paymentsTab') populatePayProject(); });
+
+    // populate settings fields
+    function renderSettingsToUI(){ const s = loadSettings(); document.getElementById('settingTeam').value = s.team.join(','); document.getElementById('settingSources').value = s.sources.join(','); document.getElementById('settingReqs').value = s.reqs.join(','); document.getElementById('settingCommission').value = s.commission; populateSettingsSelects(); }
+
+    function populateSettingsSelects(){ const s = loadSettings(); const assignedTo = document.getElementById('assignedTo'); assignedTo.innerHTML = '<option>Unassigned</option>' + s.team.map(x=> `<option>${x}</option>`).join(''); const leadSource = document.getElementById('leadSource'); leadSource.innerHTML = s.sources.map(x=> `<option>${x}</option>`).join(''); const reqType = document.getElementById('reqType'); reqType.innerHTML = s.reqs.map(x=> `<option>${x}</option>`).join(''); }
+
+    document.getElementById('saveSettings').onclick = ()=>{ const s = {team: document.getElementById('settingTeam').value.split(',').map(x=>x.trim()).filter(Boolean), sources: document.getElementById('settingSources').value.split(',').map(x=>x.trim()).filter(Boolean), reqs: document.getElementById('settingReqs').value.split(',').map(x=>x.trim()).filter(Boolean), commission: Number(document.getElementById('settingCommission').value) || 10}; saveSettings(s); populateSettingsSelects(); render(); alert('Settings saved'); };
+
+    // Lead form actions
+    const form = document.getElementById('leadForm'); form.onsubmit = (e)=>{ e.preventDefault(); const id = document.getElementById('leadId').value; const lead = { id: id || uid(), date: document.getElementById('leadDate').value || new Date().toISOString().slice(0,10), clientName: document.getElementById('clientName').value.trim(), companyName: document.getElementById('companyName').value.trim(), contact: document.getElementById('contact').value.trim(), email: document.getElementById('email').value.trim(), reqType: document.getElementById('reqType').value, leadSource: document.getElementById('leadSource').value, assignedTo: document.getElementById('assignedTo').value, status: document.getElementById('status').value, value: Number(document.getElementById('value').value)||0, followup: document.getElementById('followup').value, notes: document.getElementById('notes').value.trim() };
+      const data = load(); if(id){ const i = data.findIndex(x=>x.id===id); if(i>-1){ data[i] = Object.assign({}, data[i], lead); } } else { data.push(lead); }
+      save(data); form.reset(); document.getElementById('leadId').value=''; render(); }
+    document.getElementById('clearForm').onclick = ()=>{ form.reset(); document.getElementById('leadId').value=''; }
+
+    // render lists
+    function render(){ const data = load(); const tbody = document.querySelector('#leadsTable tbody'); tbody.innerHTML = ''; const q = document.getElementById('search').value.toLowerCase(); const filter = document.getElementById('filterStatus').value.toLowerCase(); let total=0, active=0, converted=0, revenue=0; const today = new Date().toISOString().slice(0,10); const followTodayArr=[]; const overdueArr=[];
+      data.slice().sort((a,b)=> b.date.localeCompare(a.date)).forEach(l=>{ total++; if(!['closed','lost'].includes(l.status.toLowerCase())) active++; if(l.status.toLowerCase()==='closed') converted++; revenue += Number(l.value||0); if(l.followup===today) followTodayArr.push(l); if(l.followup && l.followup < today) overdueArr.push(l);
+        if(filter && l.status.toLowerCase()!==filter) return; const str = (l.clientName+' '+(l.companyName||'')+' '+(l.contact||'')+' '+(l.email||'')).toLowerCase(); if(q && !str.includes(q)) return;
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.date||''}</td><td><strong>${escapeHtml(l.clientName)}</strong><div class="small">${escapeHtml(l.email||'')}</div></td><td>${escapeHtml(l.companyName||'')}</td><td>${escapeHtml(l.assignedTo||'')}</td><td>${escapeHtml(l.status||'')}</td><td>₹${Number(l.value||0).toFixed(2)}</td><td>${l.followup||''}</td><td class="actions"><button data-id="${l.id}" class="edit">Edit</button> <button data-id="${l.id}" class="convert">To Project</button> <button data-id="${l.id}" class="del">Del</button></td>`; tbody.appendChild(tr);
+      });
+      document.getElementById('mTotal').textContent = total; document.getElementById('mActive').textContent = active; document.getElementById('mConverted').textContent = converted; const pct = total?Math.round((converted/total)*10000)/100:0; document.getElementById('mConvPct').textContent = pct + '%'; document.getElementById('mRevenue').textContent = '₹' + revenue.toFixed(2); document.getElementById('mCommission').textContent = '₹' + ((revenue * (loadSettings().commission/100)) || 0).toFixed(2);
+
+      document.getElementById('followToday').textContent = followTodayArr.length? followTodayArr.map(x=> x.clientName + ' ('+x.assignedTo+')').join(' • ') : '--';
+      document.getElementById('overdue').innerHTML = overdueArr.length? '<b style="color:var(--warn)">Overdue:</b> ' + overdueArr.map(x=> x.clientName + ' ('+x.followup+')').join(' • ') : '';
+
+      document.querySelectorAll('.edit').forEach(b=> b.onclick = ()=> loadToForm(b.dataset.id));
+      document.querySelectorAll('.del').forEach(b=> b.onclick = ()=>{ if(confirm('Delete lead?')){ deleteLead(b.dataset.id); }});
+      document.querySelectorAll('.convert').forEach(b=> b.onclick = ()=> leadToProject(b.dataset.id));
+
+      renderProjects(); renderChart(); populateProjectClient(); populatePayProject();
+    }
+
+    function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    function loadToForm(id){ const data = load(); const l = data.find(x=>x.id===id); if(!l) return; document.getElementById('leadId').value = l.id; document.getElementById('leadDate').value = l.date||''; document.getElementById('clientName').value = l.clientName||''; document.getElementById('companyName').value = l.companyName||''; document.getElementById('contact').value = l.contact||''; document.getElementById('email').value = l.email||''; document.getElementById('reqType').value = l.reqType||'Robotics Project'; document.getElementById('leadSource').value = l.leadSource||'Instagram'; document.getElementById('assignedTo').value = l.assignedTo||'Unassigned'; document.getElementById('status').value = l.status||'New'; document.getElementById('value').value = l.value||''; document.getElementById('followup').value = l.followup||''; document.getElementById('notes').value = l.notes||''; window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function deleteLead(id){ const arr = load().filter(x=> x.id!==id); save(arr); render(); }
+
+    // convert lead -> project
+    function leadToProject(leadId){ const data = load(); const l = data.find(x=>x.id===leadId); if(!l) return; // open project tab and prefill
+      document.querySelector('[data-tab="projectTab"]').click(); document.getElementById('projectName').value = (l.clientName + ' - ' + (l.reqType||'Project')); document.getElementById('projectClient').value = l.clientName; document.getElementById('projStart').value = new Date().toISOString().slice(0,10); document.getElementById('projProgress').value = 0; // mark lead closed
+      l.status = 'Closed'; save(data); render(); alert('Lead moved to Project form. Save project to register it. Lead status set to Closed.'); }
+
+    // Projects
+    function projectData(){ const data = JSON.parse(localStorage.getItem('bg_projects_v2')||'[]'); return data; }
+    function saveProject(arr){ localStorage.setItem('bg_projects_v2', JSON.stringify(arr)); }
+    const projectForm = document.getElementById('projectForm'); projectForm.onsubmit = (e)=>{ e.preventDefault(); const id = document.getElementById('projectId').value || uid(); const p = { id, name: document.getElementById('projectName').value.trim(), client: document.getElementById('projectClient').value, start: document.getElementById('projStart').value, end: document.getElementById('projEnd').value, assigned: document.getElementById('projAssigned').value, progress: Number(document.getElementById('projProgress').value)||0, notes: document.getElementById('projNotes').value.trim(), value: 0, payments: [] };
+      // if project exists replace
+      const arr = projectData(); const i = arr.findIndex(x=>x.id===id); if(i>-1) arr[i]=p; else arr.push(p); saveProject(arr); projectForm.reset(); render(); }
+    document.getElementById('clearProject').onclick = ()=> { projectForm.reset(); document.getElementById('projectId').value=''; }
+
+    function renderProjects(){ const arr = projectData(); const tbody = document.querySelector('#projectsTable tbody'); tbody.innerHTML=''; arr.forEach(p=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.client)}</td><td>${p.start||''} → ${p.end||''}</td><td><div class="progress"><i style="width:${Math.max(0,Math.min(100,p.progress))}%"></i></div><div class="small">${p.progress}%</div></td><td>₹${Number(p.value||0).toFixed(2)}</td><td><button data-id="${p.id}" class="projEdit">Edit</button></td>`; tbody.appendChild(tr); }); document.querySelectorAll('.projEdit').forEach(b=> b.onclick = ()=> loadProjectToForm(b.dataset.id)); }
+    function loadProjectToForm(id){ const arr = projectData(); const p = arr.find(x=>x.id===id); if(!p) return; document.querySelector('[data-tab="projectTab"]').click(); document.getElementById('projectId').value = p.id; document.getElementById('projectName').value = p.name; document.getElementById('projectClient').value = p.client; document.getElementById('projStart').value = p.start; document.getElementById('projEnd').value = p.end; document.getElementById('projAssigned').value = p.assigned; document.getElementById('projProgress').value = p.progress; document.getElementById('projNotes').value = p.notes; }
+
+    // payments
+    const paymentForm = document.getElementById('paymentForm'); paymentForm.onsubmit = (e)=>{ e.preventDefault(); const pid = document.getElementById('payProject').value; const amt = Number(document.getElementById('payAmount').value)||0; const date = document.getElementById('payDate').value || new Date().toISOString().slice(0,10); const notes = document.getElementById('payNotes').value.trim(); if(!pid){ alert('Select a project'); return; } const arr = projectData(); const p = arr.find(x=>x.id===pid); if(!p) return; p.payments = p.payments || []; p.payments.push({ id: uid(), amount: amt, date, notes }); p.value = (Number(p.value||0) + amt); saveProject(arr); paymentForm.reset(); render(); alert('Payment recorded'); }
+
+    function populateProjectClient(){ const sel = document.getElementById('projectClient'); sel.innerHTML = ''; const leads = load(); const clients = leads.map(l=> l.clientName).filter(Boolean); const arr = Array.from(new Set(clients.concat(projectData().map(p=>p.client)))); sel.innerHTML = arr.map(c=> `<option>${c}</option>`).join('') || '<option>--</option>'; }
+    function populatePayProject(){ const sel = document.getElementById('payProject'); sel.innerHTML = projectData().map(p=> `<option value="${p.id}">${p.name} — ${p.client}</option>`).join(''); }
+
+    // export CSV
+    function exportCSV(){ const leads = load(); if(!leads.length){ alert('No leads to export'); return; } const keys = ['id','date','clientName','companyName','contact','email','reqType','leadSource','assignedTo','status','value','followup','notes']; const csv = [keys.join(',')].concat(leads.map(l=> keys.map(k=> '"'+String(l[k]||'').replace(/"/g,'""')+'"').join(','))).join('\n'); const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='bg_crm_leads_v2.csv'; a.click(); URL.revokeObjectURL(url); }
+    document.getElementById('exportCsv').onclick = exportCSV;
+
+    // backup/restore JSON
+    document.getElementById('backupJson').onclick = ()=>{ const data = {leads: load(), projects: projectData(), settings: loadSettings()}; const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'bg_crm_backup_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url); }
+    document.getElementById('restoreJsonBtn').onclick = ()=> document.getElementById('restoreJsonFile').click();
+    document.getElementById('restoreJsonFile').onchange = async (e)=>{ const f = e.target.files[0]; if(!f) return; const txt = await f.text(); try{ const obj = JSON.parse(txt); if(obj.leads) save(obj.leads); if(obj.projects) saveProject(obj.projects); if(obj.settings) saveSettings(obj.settings); render(); alert('Restore complete'); }catch(err){ alert('Invalid JSON'); } e.target.value=''; }
+
+    // simple chart: leads by month
+    let chartInstance = null;
+    function renderChart(){ const ctx = document.getElementById('chartLeads').getContext('2d'); const data = load(); const byMonth = {}; data.forEach(l=>{ const m = (l.date||'').slice(0,7) || 'unknown'; byMonth[m] = (byMonth[m]||0) + 1; }); const labels = Object.keys(byMonth).sort(); const values = labels.map(k=> byMonth[k]); if(chartInstance) chartInstance.destroy(); chartInstance = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Leads per month', data: values }] }, options:{ responsive:true, plugins:{legend:{display:false}} } }); }
+
+    // search/filter
+    document.getElementById('search').oninput = render; document.getElementById('filterStatus').onchange = render;
+
+    // import demo sample if empty
+    if(!localStorage.getItem(STORAGE_KEY) && !localStorage.getItem('bg_projects_v2')){
+      const sample = [{ id: uid(), date: new Date().toISOString().slice(0,10), clientName:'Shri Sai Enterprises', companyName:'Shri Sai', contact:'', email:'', reqType:'Industrial Project', leadSource:'Reference', assignedTo:'Venkatesh', status:'Quotation Sent', value:47000, followup:'', notes:'Project - Agri Drone' }]; save(sample); saveProject([]); saveSettings(defaultSettings);
+    }
+
+    // quick bindings
+    document.addEventListener('keydown', e=>{ if(e.ctrlKey && e.altKey && e.key.toLowerCase()==='k'){ if(confirm('Clear all CRM data?')){ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('bg_projects_v2'); localStorage.removeItem(SETTINGS_KEY); render(); } } });
+
+    /* ---------------- GOOGLE SHEETS SYNC LAYER (ADDED) ------------------ */
+    const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwBrqGpwy5ImxG1KsYxzugEVNFjDuMKVrp8mPExTo0ghuvCkxjlsk58nRvp-08PT9Kg/exec';
+
+    async function syncToGoogleSheet(type, data){
+      // For settings, ensure we send an array (one object) so sheet headers are consistent
+      const payload = (type === 'saveSettings' && !Array.isArray(data)) ? { type, data: [data] } : { type, data };
+      try{
+        const res = await fetch(SHEET_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        // don't block UI; optional debugging
+        // console.log('sync result', await res.text());
+      }catch(err){
+        console.warn('Google Sheets sync failed:', err);
+      }
+    }
+
+    async function fetchFromGoogleSheet(){
+      try{
+        const r = await fetch(SHEET_API_URL);
+        if(!r.ok) return null;
+        const json = await r.json();
+        return json;
+      }catch(err){
+        console.warn('Failed to fetch from Google Sheets:', err);
+        return null;
+      }
+    }
+
+    // keep originals
+    const _origSave = save;
+    save = (data) => {
+      _origSave(data);
+      // sync leads array
+      try{ syncToGoogleSheet('saveLeads', data); }catch(e){console.warn(e)}
+    };
+
+    const _origSaveProject = saveProject;
+    saveProject = (data) => {
+      _origSaveProject(data);
+      try{ syncToGoogleSheet('saveProjects', data); }catch(e){console.warn(e)}
+    };
+
+    const _origSaveSettings = saveSettings;
+    saveSettings = (data) => {
+      _origSaveSettings(data);
+      try{ syncToGoogleSheet('saveSettings', data); }catch(e){console.warn(e)}
+    };
+
+    // On startup, attempt to load cloud data and replace localStorage if cloud has data.
+    (async function initFromCloud(){
+      try{
+        const cloud = await fetchFromGoogleSheet();
+        if(cloud){
+          // If cloud.leads is present and non-empty, use it
+          if(Array.isArray(cloud.leads) && cloud.leads.length){
+            // convert string-number fields back to types if necessary (best-effort)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cloud.leads.map(c=>{
+              // keep as-is but ensure numeric fields are numbers
+              if(c.value) c.value = Number(c.value) || 0;
+              return c;
+            })));
+          }
+          // projects
+          if(Array.isArray(cloud.projects) && cloud.projects.length){
+            localStorage.setItem('bg_projects_v2', JSON.stringify(cloud.projects.map(c=>{
+              // try to parse payments field if stored as JSON string
+              if(c.payments && typeof c.payments === 'string'){
+                try{ c.payments = JSON.parse(c.payments); }catch(e){}
+              }
+              return c;
+            })));
+          }
+          // settings: if array with first object, use it; otherwise keep default
+          if(cloud.settings && Array.isArray(cloud.settings) && cloud.settings.length){
+            // cloud.settings[0] likely an object with keys team, sources, reqs, commission OR rows with key/value
+            let s = cloud.settings[0];
+            // If sheet stored as key/value rows (headers 'key','value'):
+            if(s.key && s.value && cloud.settings.length > 0){
+              // convert to settings object
+              const obj = {};
+              cloud.settings.forEach(r=>{
+                try{ obj[r.key] = JSON.parse(r.value); }catch(e){ obj[r.key] = r.value; }
+              });
+              s = obj;
+            } else {
+              // try to parse arrays stored as comma-separated strings
+              if(typeof s.team === 'string') s.team = s.team.split(',').map(x=>x.trim()).filter(Boolean);
+              if(typeof s.sources === 'string') s.sources = s.sources.split(',').map(x=>x.trim()).filter(Boolean);
+              if(typeof s.reqs === 'string') s.reqs = s.reqs.split(',').map(x=>x.trim()).filter(Boolean);
+              if(s.commission) s.commission = Number(s.commission) || 10;
+            }
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+          }
+        }
+      }catch(e){
+        console.warn('initFromCloud error', e);
+      }finally{
+        // Always render UI after attempting cloud load (cloud may have overwritten localStorage)
+        renderSettingsToUI(); render();
+      }
+    })();
+
+    // initial render (kept — but initFromCloud will call render again after fetch)
+    // renderSettingsToUI(); render(); -- removed direct call above to avoid double-initialization
+
+    // small helper: when marking closed or changing status, optionally prompt for project creation (left for future)
+  </script>
+</body>
+</html>
